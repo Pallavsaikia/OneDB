@@ -1,0 +1,6 @@
+{
+    "database_port": "3456",
+    "default_user": "root",
+    "default_password": "root",
+    "database_storage_root": null
+}
