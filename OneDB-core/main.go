@@ -6,9 +6,12 @@ import (
 )
 
 func main() {
-	config, err := config.ReadConfig()
+	configuration, err := config.ReadConfig()
 	if err != nil {
 		return
 	}
-	fmt.Print(config)
+	fmt.Print(configuration)
+	configs, _ := config.WriteConfig(config.Config{PORT: 3456,DEFAULT_USER: "root"})
+	fmt.Print(configs)
+	
 }
