@@ -5,8 +5,16 @@ import (
 	"onedb-core/engine/datatype"
 )
 
+type PrimaryKeyGenerateType int
+
+const (
+	TimeStamp PrimaryKeyGenerateType = iota + 1
+	AutoIncreament
+)
+
 type PRIMARY_KEY struct {
-	AutoGenerate bool `json:"auto_generate"`
+	Name    string                 `json:"pkey_name"`
+	KeyType PrimaryKeyGenerateType `json:"primary_key_gen_type"`
 }
 type FOREIGN_KEY struct {
 	RelatedSchemaName string `json:"relation_schema_name"`
@@ -15,7 +23,6 @@ type UNIQUE_KEY struct {
 	Unique bool `json:"unique"`
 }
 type Field struct {
-	ID       PRIMARY_KEY       `json:"pkey"`
 	NAME     string            `json:"field_name"`
 	DATATYPE datatype.DataType `json:"data_type"`
 	UNIQUE   UNIQUE_KEY        `json:"ukey"`
