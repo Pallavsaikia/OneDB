@@ -18,14 +18,11 @@ func (schema *Schema) hasDuplicateFieldName() (bool, []string) {
 	duplicateFields := []string{}
 	for _, field := range schema.Fields {
 		if _, exists := uniqueNames[field.NAME]; exists {
-			// Duplicate name found, add to the duplicates slice
 			duplicateFields = append(duplicateFields, field.NAME)
 		} else {
-			// Add the name to the map
 			uniqueNames[field.NAME] = struct{}{}
 		}
 	}
-	// Check if there are duplicate names
 	hasDuplicates := len(duplicateFields) > 0
 	return hasDuplicates, duplicateFields
 }
