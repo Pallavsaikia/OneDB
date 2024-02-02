@@ -12,9 +12,9 @@ func main() {
 	if err != nil {
 		return
 	}
-	fmt.Print(configuration)
+	fmt.Println(configuration)
 	configs, _ := config.WriteConfig(config.Config{PORT: 3456, DEFAULT_USER: "root"})
-	fmt.Print(configs)
+	fmt.Println(configs)
 	schema := schema.Schema{
 		SchemaName: "Student",
 		Fields: []schema.Field{
@@ -24,5 +24,5 @@ func main() {
 	}
 	err = schema.Validate()
 	fmt.Println(err)
-	fmt.Println(schema)
+	// fmt.Println(schema)
 }

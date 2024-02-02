@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	"onedb-core/engine/datatype"
+	"onedb-core/libs"
 	"reflect"
 )
 
@@ -37,6 +38,12 @@ func (field *Field) Validate(i int) error {
 
 	if field.NAME == "" {
 		return fmt.Errorf("error:fieldname cannot be empty:field index:%d", i)
+	}
+	if libs.ContainsSpace(field.NAME) {
+		return fmt.Errorf("error:fieldname cannot have spaces:%s", field.NAME)
+	}
+	if libs.ContainsNumber(field.NAME) {
+		return fmt.Errorf("error:fieldname cannot have number:%s", field.NAME)
 	}
 	if field.DATATYPE.Type == "" {
 		return fmt.Errorf("error:choose a valid datatype")
