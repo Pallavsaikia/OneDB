@@ -18,7 +18,7 @@ func main() {
 	schema := schema.Schema{
 		SchemaName: "Student",
 		Fields: []schema.Field{
-			{NAME: "asdf", DATATYPE: datatype.Str},
+			{NAME: "asdf ", DATATYPE: datatype.Str},
 			{NAME: "asdf", DATATYPE: datatype.Str},
 		},
 	}

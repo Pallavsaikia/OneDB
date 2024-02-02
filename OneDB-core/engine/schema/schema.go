@@ -2,6 +2,7 @@ package schema
 
 import (
 	"fmt"
+	"onedb-core/libs"
 )
 
 type Schema struct {
@@ -31,10 +32,16 @@ func (schema *Schema) hasDuplicateFieldName() (bool, []string) {
 
 func (schema *Schema) Validate() error {
 	if schema.SchemaName == "" {
-		return fmt.Errorf("schema name cannot be empty")
+		return fmt.Errorf("error:schema name cannot be empty")
+	}
+	if libs.ContainsNumber(schema.SchemaName) {
+		return fmt.Errorf("error:schema cannot contain number:'%s'", schema.SchemaName)
+	}
+	if libs.ContainsSpace(schema.SchemaName) {
+		return fmt.Errorf("error:schema cannot contain spaces:'%s'", schema.SchemaName)
 	}
 	if len(schema.Fields) == 0 {
-		return fmt.Errorf("schema requires atleast one field")
+		return fmt.Errorf("error:schema requires atleast one field")
 	}
 	for i := 0; i < len(schema.Fields); i++ {
 		error := schema.Fields[i].Validate(i)
@@ -44,7 +51,7 @@ func (schema *Schema) Validate() error {
 	}
 	hasDuplicate, duplicateFieldString := schema.hasDuplicateFieldName()
 	if hasDuplicate {
-		return fmt.Errorf("schema cannot have duplicate field names: %v", duplicateFieldString)
+		return fmt.Errorf("error:schema cannot have duplicate field names: '%v'", duplicateFieldString)
 	}
 	return nil
 }
