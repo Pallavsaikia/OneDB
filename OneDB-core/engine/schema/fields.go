@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	"onedb-core/engine/datatype"
+	"reflect"
 )
 
 type PrimaryKeyGenerateType int
@@ -23,18 +24,25 @@ type UNIQUE_KEY struct {
 	Unique bool `json:"unique"`
 }
 type Field struct {
-	NAME     string            `json:"field_name"`
-	DATATYPE datatype.DataType `json:"data_type"`
-	UNIQUE   UNIQUE_KEY        `json:"ukey"`
-	FKEY     FOREIGN_KEY       `json:"fkey"`
+	NAME          string            `json:"field_name"`
+	DATATYPE      datatype.DataType `json:"data_type"`
+	UNIQUE        UNIQUE_KEY        `json:"ukey"`
+	FKEY          FOREIGN_KEY       `json:"fkey"`
+	NOT_NULL      bool              `json:"notnull"`
+	DEFAULT_VALUE any               `json:"default_val"`
+	COLUMN_INDEX  int               `json:"column_index"`
 }
 
-func (f Field) IsValid() (bool, error) {
-	if f.NAME != "" {
-		return false, fmt.Errorf("error:fieldname cannot be empty")
+func (field *Field) Validate(i int) error {
+
+	if field.NAME == "" {
+		return fmt.Errorf("error:fieldname cannot be empty:field index:%d", i)
 	}
-	if !f.DATATYPE.IsValidDataType() {
-		return false, fmt.Errorf("error:invalid datatype for %s", f.NAME)
+	if field.DATATYPE.Type == "" {
+		return fmt.Errorf("error:choose a valid datatype")
 	}
-	return true, nil
+	if field.DEFAULT_VALUE != nil {
+		fmt.Print(reflect.TypeOf(field.DEFAULT_VALUE).String())
+	}
+	return nil
 }
