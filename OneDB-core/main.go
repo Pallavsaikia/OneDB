@@ -16,9 +16,9 @@ func main() {
 	configs, _ := config.WriteConfig(config.Config{PORT: 3456, DEFAULT_USER: "root"})
 	fmt.Println(configs)
 	schema := schema.Schema{
-		SchemaName: "Student",
+		SchemaName: "Student#",
 		Fields: []schema.Field{
-			{NAME: "asdf ", DATATYPE: datatype.Str},
+			{NAME: "asdf", DATATYPE: datatype.Str},
 			{NAME: "asdf", DATATYPE: datatype.Str},
 		},
 	}

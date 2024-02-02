@@ -45,6 +45,9 @@ func (field *Field) Validate(i int) error {
 	if libs.ContainsNumber(field.NAME) {
 		return fmt.Errorf("error:fieldname cannot have number:'%s'", field.NAME)
 	}
+	if libs.ContainsSpecialCharacters(field.NAME) {
+		return fmt.Errorf("error:fieldname cannot contain special characters other than a hyphen'_':'%s'", field.NAME)
+	}
 	if field.DATATYPE.Type == "" {
 		return fmt.Errorf("error:choose a valid datatype")
 	}

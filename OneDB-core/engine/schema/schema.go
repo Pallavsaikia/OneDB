@@ -32,10 +32,13 @@ func (schema *Schema) Validate() error {
 		return fmt.Errorf("error:schema name cannot be empty")
 	}
 	if libs.ContainsNumber(schema.SchemaName) {
-		return fmt.Errorf("error:schema cannot contain number:'%s'", schema.SchemaName)
+		return fmt.Errorf("error:schema name cannot contain number:'%s'", schema.SchemaName)
 	}
 	if libs.ContainsSpace(schema.SchemaName) {
-		return fmt.Errorf("error:schema cannot contain spaces:'%s'", schema.SchemaName)
+		return fmt.Errorf("error:schema name cannot contain spaces:'%s'", schema.SchemaName)
+	}
+	if libs.ContainsSpecialCharacters(schema.SchemaName) {
+		return fmt.Errorf("error:schema name cannot contain special characters other than a hyphen'_':'%s'", schema.SchemaName)
 	}
 	if len(schema.Fields) == 0 {
 		return fmt.Errorf("error:schema requires atleast one field")

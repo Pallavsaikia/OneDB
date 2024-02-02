@@ -19,3 +19,15 @@ func ContainsNumber(s string) bool {
 	}
 	return false
 }
+
+func ContainsSpecialCharacters(s string) bool {
+	allowedCharacters := map[rune]bool{
+		'_': true,
+	}
+	for _, char := range s {
+		if !unicode.IsLetter(char) && !allowedCharacters[char] {
+			return true
+		}
+	}
+	return false
+}
