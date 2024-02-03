@@ -2,16 +2,16 @@ package schema
 
 import (
 	"fmt"
+	"onedb-core/engine/schema/keys"
 	"onedb-core/libs"
+	"reflect"
 )
 
-
 type Schema struct {
-	Fields             []Field     `json:"fields"`
-	SchemaName         string      `json:"schema_name"`
-	RelativeLocation   string      `json:"relative_location"`
-	PrimaryKeyMetaData PRIMARY_KEY `json:"primary_key_meta"`
-	FolderName         string      `json:"folder_name"`
+	Fields           []Field `json:"fields"`
+	SchemaName       string  `json:"schema_name"`
+	RelativeLocation string  `json:"relative_location"`
+	FolderName       string  `json:"folder_name"`
 }
 
 func (schema *Schema) hasDuplicateFieldName() (bool, []string) {
@@ -52,13 +52,37 @@ func (schema *Schema) Validate() error {
 	}
 	hasDuplicate, duplicateFieldString := schema.hasDuplicateFieldName()
 	if hasDuplicate {
-		return fmt.Errorf("error:schema cannot have duplicate field names: '%v' ", duplicateFieldString)
+		return fmt.Errorf("error:schema cannot have duplicate field names: '%v'", duplicateFieldString)
+	}
+	return nil
+
+}
+
+func (schema *Schema) GenerateMeta() error {
+	err := schema.Validate()
+	if err != nil {
+		return fmt.Errorf("error:couldnot validate schema\n%s", err)
+	}
+	primaryIDs := []string{}
+	for i, field := range schema.Fields {
+		//adding indexes
+		if field.PKEY.KeyType != 0 {
+			schema.Fields[i].DATATYPE = reflect.Int64
+			schema.Fields[i].DEFAULT_VALUE = nil
+			primaryIDs = append(primaryIDs, field.NAME)
+		}
+		schema.Fields[i].COLUMN_INDEX = i
+	}
+	if len(primaryIDs) > 1 {
+		return fmt.Errorf("error:There can be only one Primary key got %d:'%s'", len(primaryIDs), primaryIDs)
+	}
+	if len(primaryIDs) == 0 {
+		schema.Fields = append([]Field{
+			{NAME: "Id", COLUMN_INDEX: 1, DATATYPE: reflect.Int64, PKEY: keys.PRIMARY_KEY{KeyType: keys.AutoIncreament}}},
+			schema.Fields...)
+		for i := range schema.Fields {
+			schema.Fields[i].COLUMN_INDEX = i
+		}
 	}
 	return nil
 }
-
-// func (schema *Schema) Cleanup() Schema {
-// 	if schema.Validate() == nil {
-
-// 	}
-// }

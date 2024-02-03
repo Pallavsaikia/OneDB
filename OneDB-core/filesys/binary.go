@@ -7,97 +7,95 @@ import (
 	"reflect"
 )
 
-func writeBinaryFile(filename string, data interface{}) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	val := reflect.ValueOf(data)
-	if val.Kind() != reflect.Slice {
-		return fmt.Errorf("data must be a slice")
-	}
-	for i := 0; i < val.Len(); i++ {
-		elem := val.Index(i)
-		for j := 0; j < elem.NumField(); j++ {
-			field := elem.Field(j)
-			if err := binary.Write(file, binary.LittleEndian, field.Interface()); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func readBinaryFile(filename string, data interface{}) error {
-	file, err := os.Open(filename)
+// EncodeStructToBinary encodes a struct to binary format.
+func EncodeStructToBinary(data interface{}, filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	val := reflect.ValueOf(data)
-	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Slice {
-		return fmt.Errorf("data must be a pointer to a slice")
+	value := reflect.ValueOf(data)
+
+	for i := 0; i < value.NumField(); i++ {
+		field := value.Field(i)
+
+		switch field.Kind() {
+		case reflect.Int:
+			err = binary.Write(file, binary.LittleEndian, field.Int())
+		case reflect.Int8:
+			err = binary.Write(file, binary.LittleEndian, int8(field.Int()))
+		case reflect.Int16:
+			err = binary.Write(file, binary.LittleEndian, int16(field.Int()))
+		case reflect.Int32:
+			err = binary.Write(file, binary.LittleEndian, int32(field.Int()))
+		case reflect.Int64:
+			err = binary.Write(file, binary.LittleEndian, field.Int())
+		case reflect.Uint:
+			err = binary.Write(file, binary.LittleEndian, field.Uint())
+		case reflect.Uint8:
+			err = binary.Write(file, binary.LittleEndian, uint8(field.Uint()))
+		case reflect.Uint16:
+			err = binary.Write(file, binary.LittleEndian, uint16(field.Uint()))
+		case reflect.Uint32:
+			err = binary.Write(file, binary.LittleEndian, uint32(field.Uint()))
+		case reflect.Uint64:
+			err = binary.Write(file, binary.LittleEndian, field.Uint())
+		case reflect.Float32:
+			err = binary.Write(file, binary.LittleEndian, float32(field.Float()))
+		case reflect.Float64:
+			err = binary.Write(file, binary.LittleEndian, field.Float())
+		case reflect.String:
+			err = binary.Write(file, binary.LittleEndian, []byte(field.String()))
+		case reflect.Bool:
+			err = binary.Write(file, binary.LittleEndian, field.Bool())
+		default:
+			return fmt.Errorf("unsupported field type: %v", field.Kind())
+		}
+
+		if err != nil {
+			return err
+		}
 	}
 
-	sliceType := val.Elem().Type().Elem()
-	slice := reflect.MakeSlice(val.Elem().Type(), 0, 0)
-
-	for {
-		elem := reflect.New(sliceType).Elem()
-		for j := 0; j < elem.NumField(); j++ {
-			field := elem.Field(j)
-			if err := binary.Read(file, binary.LittleEndian, field.Addr().Interface()); err != nil {
-				break // end of file
-			}
-		}
-		// Break out of the loop if we reached the end of the file
-		if reflect.DeepEqual(elem.Interface(), reflect.Zero(sliceType).Interface()) {
-			break
-		}
-		slice = reflect.Append(slice, elem)
-	}
-
-	val.Elem().Set(slice)
 	return nil
 }
 
-// // Person struct defined later in the code
-// type Person struct {
-// 	ID   uint32
-// 	Name string
-// 	Age  uint8
-// }
+// DecodeBinaryToStruct decodes a binary file to a struct.
+func DecodeBinaryToStruct(filePath string, data interface{}) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
 
-// func main() {
-// 	dataToWrite := []Person{
-// 		{1, "Alice", 25},
-// 		{2, "Bob", 30},
-// 		{3, "Charlie", 22},
-// 	}
+	value := reflect.ValueOf(data)
 
-// 	filename := "people.dat"
+	for i := 0; i < value.NumField(); i++ {
+		field := value.Field(i)
 
-// 	// Write data to binary file
-// 	err := writeBinaryFile(filename, dataToWrite)
-// 	if err != nil {
-// 		fmt.Println("Error writing binary file:", err)
-// 		return
-// 	}
-// 	fmt.Println("Data written to", filename)
+		switch field.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			var fieldValue int64
+			err = binary.Read(file, binary.LittleEndian, &fieldValue)
+			field.SetInt(fieldValue)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			var fieldValue uint64
+			err = binary.Read(file, binary.LittleEndian, &fieldValue)
+			field.SetUint(fieldValue)
+		case reflect.Float32, reflect.Float64:
+			var fieldValue float64
+			err = binary.Read(file, binary.LittleEndian, &fieldValue)
+			field.SetFloat(fieldValue)
+		// Add other cases for different types if needed
+		default:
+			return fmt.Errorf("unsupported field type: %v", field.Kind())
+		}
 
-// 	// Read data from binary file
-// 	var dataToRead []Person
-// 	err = readBinaryFile(filename, &dataToRead)
-// 	if err != nil {
-// 		fmt.Println("Error reading binary file:", err)
-// 		return
-// 	}
+		if err != nil {
+			return err
+		}
+	}
 
-// 	// Display loaded data
-// 	fmt.Println("Loaded data:")
-// 	for _, person := range dataToRead {
-// 		fmt.Printf("ID: %d, Name: %s, Age: %d\n", person.ID, person.Name, person.Age)
-// 	}
-// }
+	return nil
+}
