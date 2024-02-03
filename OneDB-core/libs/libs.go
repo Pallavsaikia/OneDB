@@ -1,6 +1,8 @@
 package libs
 
-import "unicode"
+import (
+	"unicode"
+)
 
 func ContainsSpace(s string) bool {
 	for _, char := range s {
@@ -31,3 +33,4 @@ func ContainsSpecialCharacters(s string) bool {
 	}
 	return false
 }
+
