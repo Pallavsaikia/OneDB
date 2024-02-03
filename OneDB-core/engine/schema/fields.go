@@ -24,6 +24,22 @@ type FOREIGN_KEY struct {
 type UNIQUE_KEY struct {
 	Unique bool `json:"unique"`
 }
+
+// Field is a column in the schema.
+//
+// @param NAME(string): name of the field
+//
+// @param DATATYPE(reflect.Kind): data type for the column/field.It is same as the golangs inbuilt datatype
+//
+// @param UNIQUE(bool): is the field unique
+//
+// @param FKEY(FOREIGN_KEY): foreign key details
+//
+// @param NOT_NULL(bool): is field allowed t	`o be null
+//
+// @param DEFAULT_VALUE(any): default value if nothing is given
+//
+// @param COLUMN_INDEX(int): position of the column in the table
 type Field struct {
 	NAME          string       `json:"field_name"`
 	DATATYPE      reflect.Kind `json:"data_type"`
@@ -34,6 +50,8 @@ type Field struct {
 	COLUMN_INDEX  int          `json:"column_index"`
 	// FIELD_SIZE_IN_BYTE int          `json:"field_size"` //in bytes
 }
+
+
 
 func (field *Field) Validate(i int) error {
 	// field.FIELD_SIZE_IN_BYTE = libs.SizeOfKind(field.DATATYPE)
@@ -60,7 +78,11 @@ func (field *Field) Validate(i int) error {
 		return fmt.Errorf("error:choose a valid datatype")
 	}
 	if field.DEFAULT_VALUE != nil {
-		fmt.Print(reflect.TypeOf(field.DEFAULT_VALUE).String())
+		dType := reflect.TypeOf(field.DEFAULT_VALUE)
+		if dType.Kind() != field.DATATYPE {
+			return fmt.Errorf("error:default value for field '%s' should be of type:'%s' but was found '%s'", field.NAME, field.DATATYPE.String(), dType.Kind().String())
+		}
+
 	}
 	return nil
 }

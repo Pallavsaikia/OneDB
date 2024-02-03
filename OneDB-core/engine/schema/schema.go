@@ -5,6 +5,7 @@ import (
 	"onedb-core/libs"
 )
 
+
 type Schema struct {
 	Fields             []Field     `json:"fields"`
 	SchemaName         string      `json:"schema_name"`
@@ -51,7 +52,7 @@ func (schema *Schema) Validate() error {
 	}
 	hasDuplicate, duplicateFieldString := schema.hasDuplicateFieldName()
 	if hasDuplicate {
-		return fmt.Errorf("error:schema cannot have duplicate field names: '%v'", duplicateFieldString)
+		return fmt.Errorf("error:schema cannot have duplicate field names: '%v' ", duplicateFieldString)
 	}
 	return nil
 }
