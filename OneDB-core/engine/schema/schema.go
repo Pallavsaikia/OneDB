@@ -2,8 +2,12 @@ package schema
 
 import (
 	"fmt"
+	"onedb-core/config"
 	"onedb-core/engine/schema/keys"
+	"onedb-core/filesys"
 	"onedb-core/libs"
+	"onedb-core/structure"
+	"os"
 	"reflect"
 )
 
@@ -14,6 +18,14 @@ type Schema struct {
 	FolderName       string  `json:"folder_name"`
 }
 
+func (s *Schema) Encode() ([]byte, error) {
+	return filesys.GobEncode(s)
+}
+
+// Decode deserializes the byte slice to populate the Person struct.
+func (s *Schema) Decode(data []byte) error {
+	return filesys.GobDecode(data, s)
+}
 func (schema *Schema) hasDuplicateFieldName() (bool, []string) {
 	uniqueNames := make(map[string]struct{})
 	duplicateFields := []string{}
@@ -58,7 +70,7 @@ func (schema *Schema) Validate() error {
 
 }
 
-func (schema *Schema) GenerateMeta() error {
+func (schema *Schema) Intitialize() error {
 	err := schema.Validate()
 	if err != nil {
 		return fmt.Errorf("error:couldnot validate schema\n%s", err)
@@ -85,4 +97,34 @@ func (schema *Schema) GenerateMeta() error {
 		}
 	}
 	return nil
+}
+
+func CreateSchema(schema Schema) error {
+	error := schema.Intitialize()
+	if error != nil {
+		return error
+	}
+	configuration, error := config.ReadConfig()
+	if error != nil {
+		return error
+	}
+	return filesys.WriteSchemaToFile(&schema, configuration.DATABASE_STORAGE_ROOT+structure.SCHEMA_PATH+"/"+schema.SchemaName+".bin")
+}
+
+func ReadSchema(schemaName string) (Schema, error) {
+	schema := &Schema{}
+	configuration, error := config.ReadConfig()
+	if error != nil {
+		return Schema{}, error
+	}
+	file_loc := configuration.DATABASE_STORAGE_ROOT + structure.SCHEMA_PATH + "/" + schemaName + ".bin"
+	_, error = os.Stat(file_loc)
+	if error != nil {
+		return Schema{}, error
+	}
+	error = filesys.ReadSchemaToFile(schema, file_loc)
+	if error != nil {
+		return Schema{}, error
+	}
+	return *schema, nil
 }
