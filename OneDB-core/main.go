@@ -22,6 +22,7 @@ func main() {
 	schema := schema.Schema{
 		SchemaName: "Student",
 		Fields: []schema.Field{
+			schema.CreateField[int8]("test", 1),
 			{NAME: "ids", DATATYPE: reflect.String, DEFAULT_VALUE: "sa"},
 			{NAME: "asdfd", DATATYPE: reflect.Int32},
 			// {NAME: "asdfd", DATATYPE: reflect.Int16, PKEY: keys.PRIMARY_KEY{KeyType: keys.AutoIncreament}},

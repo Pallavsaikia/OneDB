@@ -74,10 +74,8 @@ func ValidDataType(k reflect.Kind) bool {
 		reflect.Int64,
 		reflect.Float32,
 		reflect.Float64,
-		reflect.Array,
 		reflect.Map,
-		reflect.String,
-		reflect.Struct:
+		reflect.String:
 		return true
 	default:
 		return false

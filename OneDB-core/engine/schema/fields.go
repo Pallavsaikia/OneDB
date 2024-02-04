@@ -36,17 +36,32 @@ type Field struct {
 	// FIELD_SIZE_IN_BYTE int          `json:"field_size"` //in bytes
 }
 
+func CreateField[T any](name string, default_val T) Field {
+	return Field{
+		NAME:          name,
+		DATATYPE:      reflect.TypeOf(default_val).Kind(),
+		DEFAULT_VALUE: default_val,
+		UNIQUE:        keys.UNIQUE_KEY{Unique: false},
+		FKEY:          keys.FOREIGN_KEY{},
+		PKEY:          keys.PRIMARY_KEY{},
+		COLUMN_INDEX:  0,
+	}
+}
+
 func (field *Field) Validate(i int) error {
 	// field.FIELD_SIZE_IN_BYTE = libs.SizeOfKind(field.DATATYPE)
-	
+
+	if strings.EqualFold(field.NAME, "default") {
+		return fmt.Errorf("error:field name cannot be 'default':field index:%d", i)
+	}
 	if field.NAME == "" {
 		return fmt.Errorf("error:fieldname cannot be empty:field index:%d", i)
 	}
-	if strings.EqualFold(field.NAME, "id") && field.PKEY.KeyType==0{
+	if strings.EqualFold(field.NAME, "id") && field.PKEY.KeyType == 0 {
 		return fmt.Errorf("error:fieldname cannot be named 'id' if its not a primary key")
 	}
 	if !datatype.ValidDataType(field.DATATYPE) {
-		return fmt.Errorf("error:datatpe for '%s' invalid:%s ", field.NAME, field.DATATYPE.String())
+		return fmt.Errorf("error:datatpe for '%s' invalid :%s ", field.NAME, field.DATATYPE.String())
 	}
 	if libs.ContainsSpace(field.NAME) {
 		return fmt.Errorf("error:fieldname cannot have spaces:'%s'", field.NAME)
