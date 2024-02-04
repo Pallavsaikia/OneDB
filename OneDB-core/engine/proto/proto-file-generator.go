@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GenerateFieldProtoContent(fields []schema.Field) string {
+func generateFieldProtoContent(fields []schema.Field) string {
 	field_lines := []string{}
 	for _, field := range fields {
 		currentline := ""
@@ -22,18 +22,20 @@ func GenerateFieldProtoContent(fields []schema.Field) string {
 	}
 	return strings.Join(field_lines, "\n")
 }
-func GenerateProtoContent(schema schema.Schema) (string, error) {
+func generateProtoContent(schema schema.Schema) (string, error) {
 	proto_lines := []string{}
 	proto_lines = append(proto_lines, "syntax = \"proto3\";")
 	proto_lines = append(proto_lines, "")
 	proto_lines = append(proto_lines, "message "+schema.SchemaName+"{")
-	proto_lines = append(proto_lines, GenerateFieldProtoContent(schema.Fields))
+	proto_lines = append(proto_lines, generateFieldProtoContent(schema.Fields))
 	proto_lines = append(proto_lines, "}")
 	proto_content := strings.Join(proto_lines, "\n")
 	return proto_content, nil
 }
+
+
 func GenerateProtoFile(schema schema.Schema, filepath string) error {
-	content, _ := GenerateProtoContent(schema)
+	content, _ := generateProtoContent(schema)
 	file, err := filesys.CreateFileAndPathIfNotExist(filepath + schema.SchemaName + ".proto")
 	if err != nil {
 		return fmt.Errorf("error creating proto file:%e", err)
