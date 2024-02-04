@@ -120,7 +120,7 @@ func ReadSchema(schemaName string) (Schema, error) {
 	file_loc := configuration.DATABASE_STORAGE_ROOT + structure.SCHEMA_PATH + "/" + schemaName + ".bin"
 	_, error = os.Stat(file_loc)
 	if error != nil {
-		return Schema{}, error
+		return Schema{}, fmt.Errorf("error:schema with name '%s' doesnot exist", schemaName)
 	}
 	error = filesys.ReadSchemaToFile(schema, file_loc)
 	if error != nil {
