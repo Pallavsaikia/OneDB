@@ -2,9 +2,10 @@ package filesys
 
 import (
 	"fmt"
-	"runtime"
+	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 )
 
 func GetFilePath() string {
@@ -19,7 +20,6 @@ func GetFilePath() string {
 	return absolutePath
 }
 
-
 func GetFileLocation() (string, error) {
 	_, filename, _, ok := runtime.Caller(1)
 	if !ok {
@@ -27,4 +27,32 @@ func GetFileLocation() (string, error) {
 	}
 	dir := path.Dir(filename)
 	return dir, nil
+}
+
+func GetRootDir() string {
+	_, b, _, _ := runtime.Caller(0)
+	d := path.Join(path.Dir(b))
+	return filepath.Dir(d)
+}
+
+func IsValidPath(path string) bool {
+	isAbsolute := filepath.IsAbs(path)
+	if isAbsolute {
+		_, err := os.Stat(path)
+		return err == nil
+	}
+	return false
+}
+
+func CreateFileAndPathIfNotExist(filePath string) (*os.File, error) {
+	dir := filepath.Dir(filePath)
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return nil, fmt.Errorf("error creating directories: %v", err)
+	}
+	file, err := os.Create(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("error creating directories: %v", err)
+	}
+	return file, nil
 }

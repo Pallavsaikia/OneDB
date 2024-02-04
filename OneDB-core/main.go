@@ -1,30 +1,31 @@
 package main
 
 import (
-	// "encoding/json"
 	"fmt"
-	"strconv"
-	"time"
-
-	// "onedb-core/config"
-	// "onedb-core/engine/database"
+	"onedb-core/config"
 	"onedb-core/engine/proto"
 	"onedb-core/engine/schema"
-
-	// "onedb-core/engine/schema/keys"
+	"onedb-core/filesys"
+	"onedb-core/structure"
 	"reflect"
+	"strconv"
+	"time"
 )
 
 func main() {
-	// configuration, err := config.ReadConfig()
-	// if err != nil {
-	// 	return
-	// }
-	// fmt.Println(configuration)
-	// configs, _ := config.WriteConfig(config.Config{PORT: 3456, DEFAULT_USER: "root"})
-	// fmt.Println(configs)
-	startTime := time.Now().Local().UnixMilli()
+	configuration, err := config.ReadConfig()
+	if err != nil {
+		return
+	}
+	if configuration.DATABASE_STORAGE_ROOT == "" {
+		pathForRoot := filesys.GetRootDir()
+		configuration.DATABASE_STORAGE_ROOT = pathForRoot
+		_, err = config.WriteConfig(configuration)
+		fmt.Println(err)
+	}
 	
+	startTime := time.Now().Local().UnixMilli()
+
 	fmt.Println(strconv.Itoa(int(startTime)))
 	schema := schema.Schema{
 		SchemaName: "Student",
@@ -40,13 +41,10 @@ func main() {
 		fmt.Println(error)
 		return
 	}
-	error = proto.GenerateProtoFile(schema, "")
+	
+	error = proto.GenerateProtoFile(schema, configuration.DATABASE_STORAGE_ROOT+structure.PROTO_PATH)
 	endTime := time.Now().Local().UnixMilli()
 	fmt.Println(strconv.Itoa(int(endTime)))
-	// duration := endTime.Sub(startTime).Milliseconds()
-	// fmt.Printf("Time taken: %v,%v,%v\n", startTime,endTime,duration)
 	fmt.Println(error)
-	// jsonData, _ := json.MarshalIndent(schema, "", "    ")
-	// fmt.Println(string(jsonData))
 
 }

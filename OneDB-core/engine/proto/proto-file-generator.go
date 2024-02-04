@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"onedb-core/engine/schema"
-	"os"
+	"onedb-core/filesys"
 	"strconv"
 	"strings"
 )
@@ -34,7 +34,7 @@ func GenerateProtoContent(schema schema.Schema) (string, error) {
 }
 func GenerateProtoFile(schema schema.Schema, filepath string) error {
 	content, _ := GenerateProtoContent(schema)
-	file, err := os.Create(filepath + schema.SchemaName + ".proto")
+	file, err := filesys.CreateFileAndPathIfNotExist(filepath + schema.SchemaName + ".proto")
 	if err != nil {
 		return fmt.Errorf("error creating proto file:%e", err)
 	}

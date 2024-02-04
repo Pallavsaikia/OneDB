@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-message Student{
- 	int64 Id = 1;
- 	int8 test = 2;
- 	string ids = 3;
- 	required int32 asdfd = 4;
-}
