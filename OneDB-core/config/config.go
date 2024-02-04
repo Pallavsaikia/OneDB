@@ -49,6 +49,22 @@ func ReadConfig() (Config, error) {
 	return loadedConfig, nil
 }
 
+func InstallConfig(PORT int, DEFAULT_USER string, DEFAULT_PASSWORD string, DATABASE_STORAGE_ROOT string) (Config, error) {
+	configuration, err := ReadConfig()
+	if err != nil {
+		return Config{}, err
+	}
+	configuration.PORT = PORT
+	configuration.DEFAULT_USER = "root"
+	configuration.DEFAULT_PASSWORD = "root"
+	configuration.DATABASE_STORAGE_ROOT = DATABASE_STORAGE_ROOT
+	_, err = WriteConfig(configuration)
+	if err != nil {
+		return Config{}, err
+	}
+	return configuration, nil
+}
+
 func WriteConfig(config Config) (Config, error) {
 	fileroot, err := filesys.GetFileLocation()
 	if err != nil {

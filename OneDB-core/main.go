@@ -13,17 +13,12 @@ import (
 )
 
 func main() {
-	configuration, err := config.ReadConfig()
+
+	configuration, err :=config.InstallConfig(3456,"root","root",filesys.GetRootDir())
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	if configuration.DATABASE_STORAGE_ROOT == "" {
-		pathForRoot := filesys.GetRootDir()
-		configuration.DATABASE_STORAGE_ROOT = pathForRoot
-		_, err = config.WriteConfig(configuration)
-		fmt.Println(err)
-	}
-	
 	startTime := time.Now().Local().UnixMilli()
 
 	fmt.Println(strconv.Itoa(int(startTime)))
