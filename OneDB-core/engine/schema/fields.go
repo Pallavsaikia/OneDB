@@ -30,18 +30,20 @@ type Field struct {
 	UNIQUE        keys.UNIQUE_KEY  `json:"ukey"`
 	FKEY          keys.FOREIGN_KEY `json:"fkey"`
 	PKEY          keys.PRIMARY_KEY `json:"pkey"`
+	SIZE_IN_BYTE  int16            `json:"size"`
 	NOT_NULL      bool             `json:"notnull"`
 	DEFAULT_VALUE any              `json:"default_val"`
 	COLUMN_INDEX  int              `json:"column_index"`
 	// FIELD_SIZE_IN_BYTE int          `json:"field_size"` //in bytes
 }
 
-func CreateField[T any](name string, default_val T) Field {
+func CreateField[T any](name string, default_val T, size_in_byte int16) Field {
 	return Field{
 		NAME:          name,
 		DATATYPE:      reflect.TypeOf(default_val).Kind(),
 		DEFAULT_VALUE: default_val,
 		UNIQUE:        keys.UNIQUE_KEY{Unique: false},
+		SIZE_IN_BYTE:  size_in_byte,
 		FKEY:          keys.FOREIGN_KEY{},
 		PKEY:          keys.PRIMARY_KEY{},
 		COLUMN_INDEX:  0,

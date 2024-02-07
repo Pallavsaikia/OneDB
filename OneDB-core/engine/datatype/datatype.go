@@ -1,6 +1,7 @@
 package datatype
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 )
@@ -74,10 +75,33 @@ func ValidDataType(k reflect.Kind) bool {
 		reflect.Int64,
 		reflect.Float32,
 		reflect.Float64,
-		reflect.Map,
 		reflect.String:
 		return true
 	default:
 		return false
+	}
+}
+
+
+func LoadKindSize(k reflect.Kind) (int16, error) {
+	switch k {
+	case reflect.Bool:
+		return 1, nil
+	case reflect.Int8:
+		return 1, nil
+	case reflect.Int16:
+		return 2, nil
+	case reflect.Int32:
+		return 4, nil
+	case reflect.Int64:
+		return 8, nil
+	case reflect.Int:
+		return 8, nil
+	case reflect.Float32:
+		return 4, nil
+	case reflect.Float64:
+		return 8, nil
+	default:
+		return 0, fmt.Errorf("error:unsupported kind")
 	}
 }

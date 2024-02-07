@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	"onedb-core/config"
+	"onedb-core/engine/datatype"
 	"onedb-core/engine/schema/keys"
 	"onedb-core/filesys"
 	"onedb-core/libs"
@@ -70,6 +71,24 @@ func (schema *Schema) Validate() error {
 
 }
 
+func (schema *Schema) ValidateSizeOFFields() error {
+	for i, field := range schema.Fields {
+		if field.DATATYPE == reflect.String {
+			if field.SIZE_IN_BYTE == 0 {
+				return fmt.Errorf("error:string fields cannot be empty:'%s'", field.NAME)
+			}
+		} else {
+			size, err := datatype.LoadKindSize(field.DATATYPE)
+			if err != nil {
+				return err
+			}
+			schema.Fields[i].SIZE_IN_BYTE = size
+		}
+
+	}
+	return nil
+}
+
 func (schema *Schema) Intitialize() error {
 	err := schema.Validate()
 	if err != nil {
@@ -96,7 +115,8 @@ func (schema *Schema) Intitialize() error {
 			schema.Fields[i].COLUMN_INDEX = i
 		}
 	}
-	return nil
+	err = schema.ValidateSizeOFFields()
+	return err
 }
 
 func CreateSchema(schema Schema) error {
@@ -128,3 +148,4 @@ func ReadSchema(schemaName string) (Schema, error) {
 	}
 	return *schema, nil
 }
+

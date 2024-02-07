@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"onedb-core/engine/schema"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -18,19 +19,18 @@ func main() {
 	startTime := time.Now().Local().UnixMilli()
 
 	fmt.Println(strconv.Itoa(int(startTime)))
-	// schemas := schema.Schema{
-	// 	SchemaName: "Student",
-	// 	Fields: []schema.Field{
-	// 		schema.CreateField[int8]("test", 1),
-	// 		{NAME: "ids", DATATYPE: reflect.String, DEFAULT_VALUE: "sa"},
-	// 		{NAME: "asdfd", DATATYPE: reflect.Int32, NOT_NULL: true},
-	// 	},
-	// }
-	// // error := schema.CreateSchema(schemas)
-	// // if error != nil {
-	// // 	fmt.Println(error)
-	// // 	return
-	// // }
+	schemas := schema.Schema{
+		SchemaName: "Student",
+		Fields: []schema.Field{
+			schema.CreateField[int8]("test", 1, 0),
+			{NAME: "ids", DATATYPE: reflect.String, DEFAULT_VALUE: "sa", SIZE_IN_BYTE: 24},
+		},
+	}
+	error := schema.CreateSchema(schemas)
+	if error != nil {
+		fmt.Println(error)
+		return
+	}
 	s, error := schema.ReadSchema("Student")
 	readtime := time.Now().Local().UnixMilli()
 	fmt.Println(strconv.Itoa(int(readtime)))
