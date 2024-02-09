@@ -37,7 +37,7 @@ type Field struct {
 	// FIELD_SIZE_IN_BYTE int          `json:"field_size"` //in bytes
 }
 
-func CreateField[T any](name string, default_val T, size_in_byte int16) Field {
+func CreateField[T any](name string,  not_null bool,default_val T, size_in_byte int16) Field {
 	return Field{
 		NAME:          name,
 		DATATYPE:      reflect.TypeOf(default_val).Kind(),
@@ -47,6 +47,7 @@ func CreateField[T any](name string, default_val T, size_in_byte int16) Field {
 		FKEY:          keys.FOREIGN_KEY{},
 		PKEY:          keys.PRIMARY_KEY{},
 		COLUMN_INDEX:  0,
+		NOT_NULL:      not_null,
 	}
 }
 

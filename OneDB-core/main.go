@@ -22,7 +22,7 @@ func main() {
 	schemas := schema.Schema{
 		SchemaName: "Student",
 		Fields: []schema.Field{
-			schema.CreateField[int8]("test", 1, 0),
+			schema.CreateField[int8]("test", false, 1, 0),
 			{NAME: "ids", DATATYPE: reflect.String, DEFAULT_VALUE: "sa", SIZE_IN_BYTE: 24},
 		},
 	}

@@ -10,6 +10,7 @@ import (
 	"onedb-core/structure"
 	"os"
 	"reflect"
+	"strings"
 )
 
 type Schema struct {
@@ -29,14 +30,22 @@ func (s *Schema) Decode(data []byte) error {
 }
 func (schema *Schema) hasDuplicateFieldName() (bool, []string) {
 	uniqueNames := make(map[string]struct{})
-	duplicateFields := []string{}
+	duplicateFields := make([]string, 0)
+
 	for _, field := range schema.Fields {
-		if _, exists := uniqueNames[field.NAME]; exists {
+		// Convert field name to lowercase for case-insensitive comparison
+		lowercaseName := strings.ToLower(field.NAME)
+
+		// Check if the lowercase name already exists in the uniqueNames map
+		if _, exists := uniqueNames[lowercaseName]; exists {
+			// If the lowercase name exists, it's a duplicate, so add it to duplicateFields slice
 			duplicateFields = append(duplicateFields, field.NAME)
 		} else {
-			uniqueNames[field.NAME] = struct{}{}
+			// If the lowercase name doesn't exist, add it to the uniqueNames map
+			uniqueNames[lowercaseName] = struct{}{}
 		}
 	}
+
 	hasDuplicates := len(duplicateFields) > 0
 	return hasDuplicates, duplicateFields
 }
@@ -89,38 +98,70 @@ func (schema *Schema) ValidateSizeOFFields() error {
 	return nil
 }
 
-func (schema *Schema) Intitialize() error {
-	err := schema.Validate()
-	if err != nil {
-		return fmt.Errorf("error:couldnot validate schema\n%s", err)
-	}
+func (schema *Schema) setUpPrimaryKeys() error {
 	primaryIDs := []string{}
+	//looping throught pkeys and checking if there is more than 1 key
 	for i, field := range schema.Fields {
-		//adding indexes
 		if field.PKEY.KeyType != 0 {
 			schema.Fields[i].DATATYPE = reflect.Int64
 			schema.Fields[i].DEFAULT_VALUE = nil
+			schema.Fields[i].NOT_NULL = true
+			schema.Fields[i].UNIQUE = keys.UNIQUE_KEY{Unique: true}
 			primaryIDs = append(primaryIDs, field.NAME)
 		}
-		schema.Fields[i].COLUMN_INDEX = i
 	}
 	if len(primaryIDs) > 1 {
 		return fmt.Errorf("error:There can be only one Primary key got %d:'%s'", len(primaryIDs), primaryIDs)
 	}
 	if len(primaryIDs) == 0 {
 		schema.Fields = append([]Field{
-			{NAME: "Id", COLUMN_INDEX: 1, DATATYPE: reflect.Int64, PKEY: keys.PRIMARY_KEY{KeyType: keys.AutoIncreament}}},
+			{NAME: "id", COLUMN_INDEX: 1, DATATYPE: reflect.Int64, NOT_NULL: true, PKEY: keys.PRIMARY_KEY{KeyType: keys.AutoIncreament}}},
 			schema.Fields...)
-		for i := range schema.Fields {
-			schema.Fields[i].COLUMN_INDEX = i
+
+	}
+	return nil
+}
+
+func (schema *Schema) addTimeStamps() {
+	schema.Fields = append(schema.Fields, CreateField[int64]("createdAt", true, 0, 0))
+	schema.Fields = append(schema.Fields, CreateField[int64]("updatedAt", true, 0, 0))
+}
+
+func (s *Schema) createColumnIndex() {
+	var idIndex int
+	for i, field := range s.Fields {
+		if field.NAME == "id" {
+			idIndex = i
+			break
 		}
 	}
+	if idIndex != 0 {
+		s.Fields[0], s.Fields[idIndex] = s.Fields[idIndex], s.Fields[0]
+	}
+	for i := range s.Fields {
+		s.Fields[i].COLUMN_INDEX = i + 1
+	}
+}
+func (schema *Schema) intitialize() error {
+	schema.addTimeStamps()
+	err := schema.setUpPrimaryKeys()
+	if err != nil {
+		return err
+	}
 	err = schema.ValidateSizeOFFields()
-	return err
+	if err != nil {
+		return err
+	}
+	schema.createColumnIndex()
+	err = schema.Validate()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func CreateSchema(schema Schema) error {
-	error := schema.Intitialize()
+	error := schema.intitialize()
 	if error != nil {
 		return error
 	}
@@ -128,6 +169,7 @@ func CreateSchema(schema Schema) error {
 	if error != nil {
 		return error
 	}
+
 	return filesys.WriteSchemaToFile(&schema, configuration.DATABASE_STORAGE_ROOT+structure.SCHEMA_PATH+"/"+schema.SchemaName+".bin")
 }
 
@@ -148,4 +190,3 @@ func ReadSchema(schemaName string) (Schema, error) {
 	}
 	return *schema, nil
 }
-
