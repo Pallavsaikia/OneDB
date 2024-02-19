@@ -56,3 +56,17 @@ func CreateFileAndPathIfNotExist(filePath string) (*os.File, error) {
 	}
 	return file, nil
 }
+
+func CreatePathFromStringArray(paths []string) string {
+	str := ""
+	for i, path := range paths {
+		if i == 0 {
+			str = path
+		} else {
+			str = str + "\\" + path
+		}
+
+	}
+	// fmt.Println(str)
+	return str
+}

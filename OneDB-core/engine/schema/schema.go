@@ -16,7 +16,7 @@ import (
 type Schema struct {
 	Fields           []Field `json:"fields"`
 	SchemaName       string  `json:"schema_name"`
-	RelativeLocation string  `json:"relative_location"`
+	DataFileLocation string  `json:"data_file_location"`
 	FolderName       string  `json:"folder_name"`
 }
 
@@ -48,6 +48,15 @@ func (schema *Schema) hasDuplicateFieldName() (bool, []string) {
 
 	hasDuplicates := len(duplicateFields) > 0
 	return hasDuplicates, duplicateFields
+}
+
+func SchemaLocation(schemaName string, config config.Config) (string, error) {
+	file_loc := filesys.CreatePathFromStringArray(
+		[]string{config.DATABASE_STORAGE_ROOT,
+			structure.SCHEMA_PATH,
+			schemaName + "_schema.bin"})
+	_, error := os.Stat(file_loc)
+	return file_loc, error
 }
 
 func (schema *Schema) Validate() error {
@@ -142,6 +151,15 @@ func (s *Schema) createColumnIndex() {
 		s.Fields[i].COLUMN_INDEX = i + 1
 	}
 }
+
+func (s *Schema) addSchemaDataFileLocation(config config.Config) {
+	loc := filesys.CreatePathFromStringArray(
+		[]string{config.DATABASE_STORAGE_ROOT,
+			structure.DATA_PATH,
+			s.SchemaName + ".bin"})
+	s.DataFileLocation = loc
+}
+
 func (schema *Schema) intitialize() error {
 	schema.addTimeStamps()
 	err := schema.setUpPrimaryKeys()
@@ -169,8 +187,15 @@ func CreateSchema(schema Schema) error {
 	if error != nil {
 		return error
 	}
-
-	return filesys.WriteSchemaToFile(&schema, configuration.DATABASE_STORAGE_ROOT+structure.SCHEMA_PATH+"/"+schema.SchemaName+".bin")
+	schema.addSchemaDataFileLocation(configuration)
+	/*
+	*checking if schema with schemaName already exist
+	 */
+	file_loc, error := SchemaLocation(schema.SchemaName, configuration)
+	if error == nil {
+		return fmt.Errorf("error:schema with name '%s' already exist", schema.SchemaName)
+	}
+	return filesys.WriteSchemaToFile(&schema, file_loc)
 }
 
 func ReadSchema(schemaName string) (Schema, error) {
@@ -179,8 +204,11 @@ func ReadSchema(schemaName string) (Schema, error) {
 	if error != nil {
 		return Schema{}, error
 	}
-	file_loc := configuration.DATABASE_STORAGE_ROOT + structure.SCHEMA_PATH + "/" + schemaName + ".bin"
-	_, error = os.Stat(file_loc)
+
+	/*
+	*checking if schema with schemaName exist
+	 */
+	file_loc, error := SchemaLocation(schemaName, configuration)
 	if error != nil {
 		return Schema{}, fmt.Errorf("error:schema with name '%s' doesnot exist", schemaName)
 	}
