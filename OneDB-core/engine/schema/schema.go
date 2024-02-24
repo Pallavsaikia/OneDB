@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	"onedb-core/config"
+	"onedb-core/engine/cache"
 	"onedb-core/engine/datatype"
 	"onedb-core/engine/schema/keys"
 	"onedb-core/filesys"
@@ -23,11 +24,33 @@ type Schema struct {
 func (s *Schema) Encode() ([]byte, error) {
 	return filesys.GobEncode(s)
 }
+func (s *Schema) cacheKeyForSchema() string {
+	return "Schema_" + s.SchemaName
+}
 
 // Decode deserializes the byte slice to populate the Person struct.
 func (s *Schema) Decode(data []byte) error {
 	return filesys.GobDecode(data, s)
 }
+
+func (schema *Schema) setCache(c *cache.Cache) error {
+	if schema.SchemaName == "" {
+		return fmt.Errorf("error:need schema name to add  cache")
+	}
+	c.Set(schema.cacheKeyForSchema(), schema, cache.TTL_IN_SECOND)
+	return nil
+}
+
+func (schema *Schema) getCache(c *cache.Cache) (*Schema, error) {
+	if schema.SchemaName == "" {
+		return &Schema{}, fmt.Errorf("error:need schema name to look for cache")
+	}
+	if s, found := c.Get(schema.cacheKeyForSchema()); found {
+		return s.(*Schema), nil
+	}
+	return &Schema{}, fmt.Errorf("error:schema with hash '%s' not found", schema.cacheKeyForSchema())
+}
+
 func (schema *Schema) hasDuplicateFieldName() (bool, []string) {
 	uniqueNames := make(map[string]struct{})
 	duplicateFields := make([]string, 0)
@@ -178,7 +201,7 @@ func (schema *Schema) intitialize() error {
 	return nil
 }
 
-func CreateSchema(schema Schema) error {
+func CreateSchema(schema Schema, c *cache.Cache) error {
 	error := schema.intitialize()
 	if error != nil {
 		return error
@@ -195,11 +218,19 @@ func CreateSchema(schema Schema) error {
 	if error == nil {
 		return fmt.Errorf("error:schema with name '%s' already exist", schema.SchemaName)
 	}
+	schema.setCache(c)
 	return filesys.WriteSchemaToFile(&schema, file_loc)
 }
 
-func ReadSchema(schemaName string) (Schema, error) {
+func ReadSchema(schemaName string, c *cache.Cache) (Schema, error) {
+
 	schema := &Schema{}
+	schema.SchemaName = schemaName
+	schema, error := schema.getCache(c)
+	if error == nil {
+		fmt.Println("from cache")
+		return *schema, nil
+	}
 	configuration, error := config.ReadConfig()
 	if error != nil {
 		return Schema{}, error

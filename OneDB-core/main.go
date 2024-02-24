@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"onedb-core/engine/cache"
 	"onedb-core/engine/schema"
 	"reflect"
 	"strconv"
@@ -16,6 +17,7 @@ func main() {
 	// 	fmt.Println(err)
 	// 	return
 	// }
+	c := cache.NewCache(20)
 	startTime := time.Now().Local().UnixMilli()
 
 	fmt.Println(strconv.Itoa(int(startTime)))
@@ -26,12 +28,12 @@ func main() {
 			{NAME: "ids", DATATYPE: reflect.String, DEFAULT_VALUE: "sa", SIZE_IN_BYTE: 24},
 		},
 	}
-	error := schema.CreateSchema(schemas)
+	error := schema.CreateSchema(schemas, c)
 	if error != nil {
 		fmt.Println(error)
-		return
 	}
-	s, error := schema.ReadSchema("Student")
+
+	s, error := schema.ReadSchema("Student", c)
 	readtime := time.Now().Local().UnixMilli()
 	fmt.Println(strconv.Itoa(int(readtime)))
 	if error != nil {
