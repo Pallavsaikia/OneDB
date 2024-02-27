@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	"onedb-core/config"
+	"onedb-core/constants"
 	"onedb-core/engine/cache"
 	"onedb-core/engine/datatype"
 	"onedb-core/engine/schema/keys"
@@ -25,7 +26,7 @@ func (s *Schema) Encode() ([]byte, error) {
 	return filesys.GobEncode(s)
 }
 func (s *Schema) cacheKeyForSchema() string {
-	return "Schema_" + s.SchemaName
+	return s.SchemaName+constants.SCHEMA_CACHE
 }
 
 // Decode deserializes the byte slice to populate the Person struct.
@@ -77,7 +78,7 @@ func SchemaLocation(schemaName string, config config.Config) (string, error) {
 	file_loc := filesys.CreatePathFromStringArray(
 		[]string{config.DATABASE_STORAGE_ROOT,
 			structure.SCHEMA_PATH,
-			schemaName + "_schema.bin"})
+			schemaName + constants.SCHEMA_BIN_FILE})
 	_, error := os.Stat(file_loc)
 	return file_loc, error
 }

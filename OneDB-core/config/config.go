@@ -3,10 +3,13 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"onedb-core/constants"
 	"onedb-core/engine/cache"
 	"onedb-core/filesys"
 	"os"
 )
+
+
 
 type Config struct {
 	PORT                  int    `json:"database_port"`
@@ -26,21 +29,19 @@ func (config *Config) setCache(c *cache.Cache) error {
 	if config.PORT == 0 || config.DEFAULT_USER == "" || config.DEFAULT_PASSWORD == "" {
 		return fmt.Errorf("error:cannot add empty config")
 	}
-	c.Set("config", config, cache.TTL_IN_SECOND)
+	c.Set(constants.CONFIG_CACHE, config, cache.TTL_IN_SECOND)
 	return nil
 }
 
 func (config *Config) getCache(c *cache.Cache) (*Config, error) {
 
-	if s, found := c.Get("config"); found {
+	if s, found := c.Get(constants.CONFIG_CACHE); found {
 		return s.(*Config), nil
 	}
 	return &Config{}, fmt.Errorf("error:config not available in cache")
 }
 
-const (
-	CONFIG_FILE = "config.json"
-)
+
 
 func ReadConfig(c *cache.Cache) (Config, error) {
 	loadedConfig := &Config{}
@@ -52,7 +53,7 @@ func ReadConfig(c *cache.Cache) (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("error getting file location:%v", err)
 	}
-	*loadedConfig, err = loadConfigFromFile(filesys.CreatePathFromStringArray([]string{fileroot, CONFIG_FILE}))
+	*loadedConfig, err = loadConfigFromFile(filesys.CreatePathFromStringArray([]string{fileroot, constants.CONFIG_FILE}))
 	if err != nil {
 		return Config{}, fmt.Errorf("error loading config:%v", err)
 	}
@@ -79,7 +80,7 @@ func WriteConfig(config Config, c *cache.Cache) (Config, error) {
 		return Config{}, fmt.Errorf("error getting file location:%v", err)
 	}
 	config.setCache(c)
-	return config, updateConfigToFile(filesys.CreatePathFromStringArray([]string{fileroot, CONFIG_FILE}), config)
+	return config, updateConfigToFile(filesys.CreatePathFromStringArray([]string{fileroot, constants.CONFIG_FILE}), config)
 }
 
 func updateConfigToFile(filePath string, config Config) error {
