@@ -206,7 +206,7 @@ func CreateSchema(schema Schema, c *cache.Cache) error {
 	if error != nil {
 		return error
 	}
-	configuration, error := config.ReadConfig()
+	configuration, error := config.ReadConfig(c)
 	if error != nil {
 		return error
 	}
@@ -228,10 +228,9 @@ func ReadSchema(schemaName string, c *cache.Cache) (Schema, error) {
 	schema.SchemaName = schemaName
 	schema, error := schema.getCache(c)
 	if error == nil {
-		fmt.Println("from cache")
 		return *schema, nil
 	}
-	configuration, error := config.ReadConfig()
+	configuration, error := config.ReadConfig(c)
 	if error != nil {
 		return Schema{}, error
 	}
@@ -247,5 +246,6 @@ func ReadSchema(schemaName string, c *cache.Cache) (Schema, error) {
 	if error != nil {
 		return Schema{}, error
 	}
+	schema.setCache(c)
 	return *schema, nil
 }

@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"onedb-core/config"
 	"onedb-core/engine/cache"
 	"onedb-core/engine/schema"
+	"onedb-core/filesys"
 	"reflect"
 	"strconv"
 	"time"
@@ -12,12 +14,13 @@ import (
 
 func main() {
 
-	// configuration, err :=config.InstallConfig(3456,"root","root",filesys.GetRootDir())
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
+	
 	c := cache.NewCache(20)
+	_, err :=config.InstallConfig(3456,"root","root",filesys.GetRootDir(),c)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	startTime := time.Now().Local().UnixMilli()
 
 	fmt.Println(strconv.Itoa(int(startTime)))

@@ -2,6 +2,7 @@ package cache
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -78,6 +79,7 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 		}
 		// Move the accessed item to the front of the eviction list
 		c.eviction.MoveToFront(elem)
+		fmt.Printf("'%s' from cache\n", key)
 		return item.Value, true
 	}
 	return nil, false
@@ -98,4 +100,3 @@ func (c *Cache) getItemSize(value interface{}) int {
 
 	return 1
 }
-

@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"onedb-core/engine/cache"
 	"onedb-core/filesys"
 	"os"
 )
@@ -20,62 +21,65 @@ func (c *Config) Validate() (bool, error) {
 	}
 	return true, nil
 }
-func (c *Config) Update(value Config) {
-	if value.PORT != 0 {
-		c.PORT = value.PORT
+
+func (config *Config) setCache(c *cache.Cache) error {
+	if config.PORT == 0 || config.DEFAULT_USER == "" || config.DEFAULT_PASSWORD == "" {
+		return fmt.Errorf("error:cannot add empty config")
 	}
-	if value.DEFAULT_USER != "" {
-		c.DEFAULT_USER = value.DEFAULT_USER
+	c.Set("config", config, cache.TTL_IN_SECOND)
+	return nil
+}
+
+func (config *Config) getCache(c *cache.Cache) (*Config, error) {
+
+	if s, found := c.Get("config"); found {
+		return s.(*Config), nil
 	}
-	if value.DEFAULT_PASSWORD != "" {
-		c.DEFAULT_PASSWORD = value.DEFAULT_PASSWORD
-	}
-	c.DATABASE_STORAGE_ROOT = value.DATABASE_STORAGE_ROOT
+	return &Config{}, fmt.Errorf("error:config not available in cache")
 }
 
 const (
 	CONFIG_FILE = "config.json"
 )
 
-func ReadConfig() (Config, error) {
+func ReadConfig(c *cache.Cache) (Config, error) {
+	loadedConfig := &Config{}
+	loadedConfig, err := loadedConfig.getCache(c)
+	if err == nil {
+		return *loadedConfig, nil
+	}
 	fileroot, err := filesys.GetFileLocation()
 	if err != nil {
 		return Config{}, fmt.Errorf("error getting file location:%v", err)
 	}
-	loadedConfig, err := loadConfigFromFile(fileroot + "/" + CONFIG_FILE)
+	*loadedConfig, err = loadConfigFromFile(filesys.CreatePathFromStringArray([]string{fileroot, CONFIG_FILE}))
 	if err != nil {
 		return Config{}, fmt.Errorf("error loading config:%v", err)
 	}
-	return loadedConfig, nil
+	loadedConfig.setCache(c)
+	return *loadedConfig, nil
 }
 
-func InstallConfig(PORT int, DEFAULT_USER string, DEFAULT_PASSWORD string, DATABASE_STORAGE_ROOT string) (Config, error) {
-	configuration, err := ReadConfig()
-	if err != nil {
-		return Config{}, err
-	}
+func InstallConfig(PORT int, DEFAULT_USER string, DEFAULT_PASSWORD string, DATABASE_STORAGE_ROOT string, c *cache.Cache) (Config, error) {
+	configuration := &Config{}
 	configuration.PORT = PORT
-	configuration.DEFAULT_USER = "root"
-	configuration.DEFAULT_PASSWORD = "root"
+	configuration.DEFAULT_USER = DEFAULT_USER
+	configuration.DEFAULT_PASSWORD = DEFAULT_PASSWORD
 	configuration.DATABASE_STORAGE_ROOT = DATABASE_STORAGE_ROOT
-	_, err = WriteConfig(configuration)
+	_, err := WriteConfig(*configuration, c)
 	if err != nil {
 		return Config{}, err
 	}
-	return configuration, nil
+	return *configuration, nil
 }
 
-func WriteConfig(config Config) (Config, error) {
+func WriteConfig(config Config, c *cache.Cache) (Config, error) {
 	fileroot, err := filesys.GetFileLocation()
 	if err != nil {
 		return Config{}, fmt.Errorf("error getting file location:%v", err)
 	}
-	configuration, err := ReadConfig()
-	if err != nil {
-		return Config{}, fmt.Errorf("error reading file")
-	}
-	configuration.Update(config)
-	return configuration, updateConfigToFile(fileroot+"/"+CONFIG_FILE, configuration)
+	config.setCache(c)
+	return config, updateConfigToFile(filesys.CreatePathFromStringArray([]string{fileroot, CONFIG_FILE}), config)
 }
 
 func updateConfigToFile(filePath string, config Config) error {
