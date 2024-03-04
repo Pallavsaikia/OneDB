@@ -3,9 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	// "onedb-core/config"
 	"onedb-core/engine/cache"
+	"onedb-core/engine/dataset"
 	"onedb-core/engine/schema"
+
 	// "onedb-core/filesys"
 	"reflect"
 	"strconv"
@@ -50,6 +53,9 @@ func main() {
 	endtime := time.Now().Local().UnixMilli()
 	fmt.Println(strconv.Itoa(int(endtime)))
 	fmt.Println(string(jsonData))
+
+	error = dataset.Insert(&s, map[string]interface{}{"id": 1, "test": 1, "ids": "s"})
+	fmt.Println(error)
 	// error = proto.GenerateProtoFile(schema, configuration.DATABASE_STORAGE_ROOT+structure.PROTO_PATH)
 	// endTime := time.Now().Local().UnixMilli()
 	// fmt.Println(strconv.Itoa(int(endTime)))

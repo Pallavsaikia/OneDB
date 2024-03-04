@@ -26,7 +26,7 @@ func (s *Schema) Encode() ([]byte, error) {
 	return filesys.GobEncode(s)
 }
 func (s *Schema) cacheKeyForSchema() string {
-	return s.SchemaName+constants.SCHEMA_CACHE
+	return s.SchemaName + constants.SCHEMA_CACHE
 }
 
 // Decode deserializes the byte slice to populate the Person struct.
@@ -212,6 +212,10 @@ func CreateSchema(schema Schema, c *cache.Cache) error {
 		return error
 	}
 	schema.addSchemaDataFileLocation(configuration)
+	_, error = filesys.CreateFileAndPathIfNotExist(schema.DataFileLocation)
+	if error != nil {
+		return error
+	}
 	/*
 	*checking if schema with schemaName already exist
 	 */
