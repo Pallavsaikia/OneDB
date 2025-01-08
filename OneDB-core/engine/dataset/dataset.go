@@ -3,9 +3,11 @@ package dataset
 import (
 	"encoding/binary"
 	"fmt"
+	"onedb-core/engine/conversion"
 	"onedb-core/engine/schema"
 	"os"
 	"reflect"
+	"time"
 )
 
 /**
@@ -23,14 +25,14 @@ import (
 func GetDataFilePath(schema *schema.Schema) string {
 	return schema.DataFileLocation
 }
-func validateData(schema *schema.Schema, data map[string]interface{}) error {
+func ValidateData(schema *schema.Schema, data map[string]interface{}) error {
 	// Implement validation logic based on the schema
 	// For example, check data types, field presence, etc.
 	return nil
 }
 
 // serializeData serializes data into a byte slice based on the schema
-func serializeData(schema *schema.Schema, data map[string]interface{}) ([]byte, error) {
+func SerializeData(schema *schema.Schema, data map[string]interface{}) ([]byte, error) {
 	// Initialize byte slice for serialized data
 	serializedData := make([]byte, 0)
 
@@ -75,15 +77,26 @@ func Insert(schema *schema.Schema, data map[string]interface{}) error {
 		return err
 	}
 	defer file.Close()
+	time_now:=time.Now().UnixNano()
 	for _, field := range schema.Fields {
+		data["createdAt"]=time_now
+		data["updatedAt"]=time_now
+		
 		value, ok := data[field.NAME]
 		if !ok && field.NOT_NULL {
 			return fmt.Errorf("error:field '%s' is required", field.NAME)
 		}
-		if reflect.TypeOf(value).Kind() != field.DATATYPE {
+		
+		castedValue,err:=conversion.SuperCastData(value,field.DATATYPE)
+		if err!=nil{
+			return fmt.Errorf("\nError:\nField:%s\n%s",field.NAME,err)
+		}
+
+
+		if reflect.TypeOf(castedValue).Kind().String() != field.DATATYPE.String() {
 			return fmt.Errorf("error:field '%s' is of type '%s' but given '%s'", field.NAME,field.DATATYPE,reflect.TypeOf(value).Kind())
 		}
-		fmt.Print(value)
+		
 	}
 	// new line for new row
 	_, err = file.WriteString("\n")

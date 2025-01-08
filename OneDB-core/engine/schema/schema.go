@@ -13,6 +13,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 )
 
 type Schema struct {
@@ -156,8 +157,8 @@ func (schema *Schema) setUpPrimaryKeys() error {
 }
 
 func (schema *Schema) addTimeStamps() {
-	schema.Fields = append(schema.Fields, CreateField[int64]("createdAt", true, 0, 0))
-	schema.Fields = append(schema.Fields, CreateField[int64]("updatedAt", true, 0, 0))
+	schema.Fields = append(schema.Fields, CreateField[int64]("createdAt", true,int64(time.Date(1970, time.January, 8, 12, 30, 0, 0, time.UTC).Nanosecond()), 64))
+	schema.Fields = append(schema.Fields, CreateField[int64]("updatedAt", true,int64(time.Date(1970, time.January, 8, 12, 30, 0, 0, time.UTC).Nanosecond()), 64))
 }
 
 func (s *Schema) createColumnIndex() {
@@ -184,12 +185,13 @@ func (s *Schema) addSchemaDataFileLocation(config config.Config) {
 	s.DataFileLocation = loc
 }
 
-func (schema *Schema) intitialize() error {
+func (schema *Schema) initialize() error {
 	schema.addTimeStamps()
 	err := schema.setUpPrimaryKeys()
 	if err != nil {
 		return err
 	}
+	
 	err = schema.ValidateSizeOFFields()
 	if err != nil {
 		return err
@@ -203,7 +205,7 @@ func (schema *Schema) intitialize() error {
 }
 
 func CreateSchema(schema Schema, c *cache.Cache) error {
-	error := schema.intitialize()
+	error := schema.initialize()
 	if error != nil {
 		return error
 	}

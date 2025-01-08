@@ -54,7 +54,7 @@ func main() {
 	fmt.Println(strconv.Itoa(int(endtime)))
 	fmt.Println(string(jsonData))
 
-	error = dataset.Insert(&s, map[string]interface{}{"id": int64(1), "test": int8(1), "ids": "s2","createdAt":int64(1),"updatedAt":int64(1)})
+	error = dataset.Insert(&s, map[string]interface{}{"id": 1, "test": 1, "ids": "s2"})
 	fmt.Println(error)
 	// error = proto.GenerateProtoFile(schema, configuration.DATABASE_STORAGE_ROOT+structure.PROTO_PATH)
 	// endTime := time.Now().Local().UnixMilli()
