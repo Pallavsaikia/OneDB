@@ -21,6 +21,7 @@ type Schema struct {
 	SchemaName       string  `json:"schema_name"`
 	DataFileLocation string  `json:"data_file_location"`
 	FolderName       string  `json:"folder_name"`
+	NextIndex		 int64   `json:"next_index"`
 }
 
 func (s *Schema) Encode() ([]byte, error) {
@@ -185,6 +186,19 @@ func (s *Schema) addSchemaDataFileLocation(config config.Config) {
 	s.DataFileLocation = loc
 }
 
+func (schema *Schema) initializeIndex() int64 {
+	schema.NextIndex=1
+	return schema.NextIndex
+}
+
+func (schema *Schema) IncreaseIndex(config.Config) int64 {
+	/*
+	*TODO Impl the increase and storage of index in disk and config
+	*/
+	schema.NextIndex=schema.NextIndex+1
+	return schema.NextIndex
+}
+
 func (schema *Schema) initialize() error {
 	schema.addTimeStamps()
 	err := schema.setUpPrimaryKeys()
@@ -201,6 +215,7 @@ func (schema *Schema) initialize() error {
 	if err != nil {
 		return err
 	}
+	schema.initializeIndex()
 	return nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"onedb-core/engine/conversion"
 	"onedb-core/engine/schema"
+	"onedb-core/engine/schema/keys"
 	"os"
 	"reflect"
 	"time"
@@ -77,27 +78,33 @@ func Insert(schema *schema.Schema, data map[string]interface{}) error {
 		return err
 	}
 	defer file.Close()
-	time_now:=time.Now().UnixNano()
+	time_now := time.Now().UnixNano()
+	data["createdAt"] = time_now
+	data["updatedAt"] = time_now
 	for _, field := range schema.Fields {
-		data["createdAt"]=time_now
-		data["updatedAt"]=time_now
-		
+
+		if field.PKEY.KeyType == keys.TimeStamp {
+			data[field.NAME] = time_now
+		}
+		if field.PKEY.KeyType == keys.AutoIncreament {
+			data[field.NAME] = schema.NextIndex
+		}
 		value, ok := data[field.NAME]
 		if !ok && field.NOT_NULL {
 			return fmt.Errorf("error:field '%s' is required", field.NAME)
 		}
-		
-		castedValue,err:=conversion.SuperCastData(value,field.DATATYPE)
-		if err!=nil{
-			return fmt.Errorf("\nError:\nField:%s\n%s",field.NAME,err)
-		}
 
+		castedValue, err := conversion.SuperCastData(value, field.DATATYPE)
+		if err != nil {
+			return fmt.Errorf("\nError:\nField:%s\n%s", field.NAME, err)
+		}
 
 		if reflect.TypeOf(castedValue).Kind().String() != field.DATATYPE.String() {
-			return fmt.Errorf("error:field '%s' is of type '%s' but given '%s'", field.NAME,field.DATATYPE,reflect.TypeOf(value).Kind())
+			return fmt.Errorf("error:field '%s' is of type '%s' but given '%s'", field.NAME, field.DATATYPE, reflect.TypeOf(value).Kind())
 		}
-		
+
 	}
+	fmt.Println(data)
 	// new line for new row
 	_, err = file.WriteString("\n")
 	return err
