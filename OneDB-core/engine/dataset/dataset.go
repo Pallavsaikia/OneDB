@@ -95,6 +95,7 @@ func Insert(schema *schema.Schema, data map[string]interface{}) error {
 		}
 
 		castedValue, err := conversion.SuperCastData(value, field.DATATYPE)
+		
 		if err != nil {
 			return fmt.Errorf("\nError:\nField:%s\n%s", field.NAME, err)
 		}
@@ -102,9 +103,20 @@ func Insert(schema *schema.Schema, data map[string]interface{}) error {
 		if reflect.TypeOf(castedValue).Kind().String() != field.DATATYPE.String() {
 			return fmt.Errorf("error:field '%s' is of type '%s' but given '%s'", field.NAME, field.DATATYPE, reflect.TypeOf(value).Kind())
 		}
-
+		data[field.NAME]=castedValue
+		
 	}
 	fmt.Println(data)
+	serializedData,err:=schema.Serialize(data)
+	fmt.Println(serializedData)
+	if err !=nil{
+		return err
+	}
+	x,err:=schema.Deserialize(serializedData)
+	if err !=nil{
+		fmt.Println(err)
+	}
+	fmt.Println(x)
 	// new line for new row
 	_, err = file.WriteString("\n")
 	return err

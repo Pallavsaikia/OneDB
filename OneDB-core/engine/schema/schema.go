@@ -24,6 +24,9 @@ type Schema struct {
 	NextIndex		 int64   `json:"next_index"`
 }
 
+
+
+
 func (s *Schema) Encode() ([]byte, error) {
 	return filesys.GobEncode(s)
 }
